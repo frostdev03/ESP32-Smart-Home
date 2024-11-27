@@ -11,7 +11,11 @@ This project implements a smart home system that allows users to monitor and con
 ## Requirements
 ### Hardware:
 - ESP32 or ESP8266 microcontroller
-- IoT devices (e.g., lights, fans, sensors)
+- DHT11
+- MQ2
+- Servo Motor
+- LED
+- Buzzer
 
 ### Software:
 - [Blynk App](https://blynk.io/)
