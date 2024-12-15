@@ -5,36 +5,41 @@
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
 #include <ESP32Servo.h>
-#include "DHT.h"
+#include <DHT.h>
 
-#define DHTPIN 23
-#define MQ_PIN 22
+#define DHT_PIN 23      // Pin untuk DHT11 (GPIO23)
+#define DHT_TYPE DHT11  // Tipe sensor DHT yang digunakan
+
+// Pin untuk MQ-2 (pin analog)
+#define MQ2_PIN 34  // Pin analog untuk sensor MQ-2 (GPIO4)
 #define BUZZER_PIN 5
 #define LED_PIN 21
-// #define FAN_PIN 10
 #define SERVO_PIN 19
 
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
+DHT dht(DHT_PIN, DHT_TYPE);  // Inisialisasi objek DHT11
 
 Servo servo;
 
 // Koneksi WiFi
-const char* ssid = "Kipas Angin";
+const char* ssid = "Setrika";
 const char* password = "11223344";
+unsigned long lastReadTime = 0;
 
 void setup() {
-  Serial.begin(9600);
-  dht.begin();
+  Serial.begin(115200);  // Inisialisasi komunikasi serial pada baudrate 115200
 
-  pinMode(MQ_PIN, INPUT);
+  analogReadResolution(12);           // Resolusi 12-bit (0-4095)
+  analogSetAttenuation(ADC_11db); 
+  dht.begin();           // Inisialisasi sensor DHT11
+  
+
+  // Set pin MQ-2 untuk input (untuk pembacaan analog)
+  pinMode(MQ2_PIN, INPUT);
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-  // pinMode(FAN_PIN, OUTPUT);
 
   digitalWrite(BUZZER_PIN, LOW);
   digitalWrite(LED_PIN, LOW);
-  // digitalWrite(FAN_PIN, LOW);
 
   servo.attach(SERVO_PIN);
   servo.write(0);
@@ -67,34 +72,42 @@ BLYNK_WRITE(V2) {
 }
 
 void loop() {
-  Blynk.run();
+  // Membaca suhu dan kelembapan dari DHT11
+  float temperature = dht.readTemperature();  // Membaca suhu dalam Celcius
+  float humidity = dht.readHumidity();        // Membaca kelembapan dalam persen
 
-  float temp = dht.readTemperature();
-  float hum = dht.readHumidity();
-  if (isnan(temp) || isnan(hum)) {
-    Serial.println("Failed to read from DHT sensor!");
-    return;
+  // Cek apakah pembacaan DHT11 berhasil
+  if (isnan(temperature) || isnan(humidity)) {
+    Serial.println("Gagal membaca dari sensor DHT11");
+  } else {
+    // Menampilkan suhu dan kelembapan di Serial Monitor
+    Serial.print("Suhu: ");
+    Serial.print(temperature);
+    Serial.print(" °C  ");
+    Serial.print("Kelembapan: ");
+    Serial.print(humidity);
+    Serial.println(" %");
   }
 
-  int mqVal = analogRead(MQ_PIN);
+  // Membaca nilai sensor MQ-2 (pada pin analog)
+  int mq2Value = analogRead(MQ2_PIN);
 
-  if (mqVal > 200) {
+  if (mq2Value >= 500) {
     digitalWrite(BUZZER_PIN, HIGH);
     Blynk.logEvent("bahaya", "Terlalu banyak karbon monoksida, beri tindakan!");
   } else {
     digitalWrite(BUZZER_PIN, LOW);
   }
 
-  Blynk.virtualWrite(V0, temp);
-  Blynk.virtualWrite(V1, hum);
-  Blynk.virtualWrite(V4, mqVal);
+  // Menampilkan nilai pembacaan sensor MQ-2
+  Serial.print("Nilai Sensor MQ-2: ");
+  Serial.println(mq2Value);
 
-  Serial.print("Suhu: ");
-  Serial.print(temp);
-  Serial.print(" || Kelembapan: ");
-  Serial.print(hum);
-  Serial.print(" || MQ: ");
-  Serial.println(mqVal);
+  // Kirim data ke Blynk
+  Blynk.virtualWrite(V4, mq2Value);
+  Blynk.virtualWrite(V0, temperature);
+  Blynk.virtualWrite(V1, humidity);
 
-  delay(1000);
+  // Delay 2 detik sebelum pembacaan berikutnya
+  delay(2000);
 }

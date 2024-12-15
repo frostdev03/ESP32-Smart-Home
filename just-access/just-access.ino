@@ -4,18 +4,18 @@
 #include <ESP32Servo.h>
 #include "DHT.h"
 
-#define DHTPIN 15
-#define MQ_PIN 12
-#define BUZZER_PIN 32
-#define LED_PIN 25
-#define FAN_PIN 16
-#define SERVO_PIN 33
+#define DHTPIN 23
+#define MQ_PIN 18
+#define BUZZER_PIN 5
+#define LED_PIN 21
+// #define FAN_PIN 10
+#define SERVO_PIN 19
 
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
 // Koneksi WiFi
-const char* ssid = "Kipas Angin";
+const char* ssid = "Setrika";
 const char* password = "11223344";
 
 // WhatsApp API
@@ -49,18 +49,18 @@ void sendMessage(String message) {
 }
 
 // Fungsi untuk mengontrol kipas berdasarkan suhu
-void controlFan(float temp) {
-  if (temp < 25) {
-    fanSpeed = 0;  // Off
-    analogWrite(FAN_PIN, 0);
-  } else if (temp < 30) {
-    fanSpeed = 1;               // Slow
-    analogWrite(FAN_PIN, 128);  // Setengah kecepatan
-  } else {
-    fanSpeed = 2;               // Fast
-    analogWrite(FAN_PIN, 255);  // Kecepatan penuh
-  }
-}
+// void controlFan(float temp) {
+//   if (temp < 25) {
+//     fanSpeed = 0;  // Off
+//     analogWrite(FAN_PIN, 0);
+//   } else if (temp < 30) {
+//     fanSpeed = 1;               // Slow
+//     analogWrite(FAN_PIN, 128);  // Setengah kecepatan
+//   } else {
+//     fanSpeed = 2;               // Fast
+//     analogWrite(FAN_PIN, 255);  // Kecepatan penuh
+//   }
+// }
 
 // // Fungsi untuk membaca perintah dari WhatsApp
 // void parseCommand(String command) {
@@ -103,13 +103,13 @@ void setup() {
   // Setup pin
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-  pinMode(FAN_PIN, OUTPUT);
+  // pinMode(FAN_PIN, OUTPUT);
   pinMode(SERVO_PIN, OUTPUT);
 
   // Matikan semua perangkat awal
   digitalWrite(BUZZER_PIN, HIGH);
   digitalWrite(LED_PIN, HIGH);
-  digitalWrite(FAN_PIN, LOW);
+  // digitalWrite(FAN_PIN, LOW);
   digitalWrite(SERVO_PIN, LOW);
 }
 
@@ -119,7 +119,7 @@ void loop() {
   float temp = dht.readTemperature();
 
   // Kontrol kipas berdasarkan suhu
-  controlFan(temp);
+  // controlFan(temp);
 
   // Membaca nilai dari sensor MQ
   int mqValue = analogRead(MQ_PIN);
