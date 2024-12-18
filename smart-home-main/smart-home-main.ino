@@ -92,7 +92,7 @@ void loop() {
   // Membaca nilai sensor MQ-2 (pada pin analog)
   int mq2Value = analogRead(MQ2_PIN);
 
-  if (mq2Value >= 500) {
+  if (mq2Value >= 900) {
     digitalWrite(BUZZER_PIN, HIGH);
     Blynk.logEvent("bahaya", "Terlalu banyak karbon monoksida, beri tindakan!");
   } else {
